@@ -1,2 +1,2 @@
 # MCBANE
-MPRA Analysis
+MPRA Computing Bundle for ASE Inference and Normalization
