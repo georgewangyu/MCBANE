@@ -148,10 +148,11 @@ readMPRAData = function(IDs, files){
 }
 checkUsage(readMPRAData)
 
-#' This is the function for 
-#' @param 
-#' @param 
-#' @return Returns 
+#' This is the function for normalizing the GC bias present with MPRA tags. Tag expression correlated with GC content and this corrects for this by calculating the mean expression for each GC bin, and subtracting this from tags within that bin.
+#' @param logFCMat a matrix of tag log(RNA/DNA) values. Columns are samples, rows are tags.
+#' @param tags the tag sequences (detaults to row.names(logFCMat))
+#' @param makePlot Logical. Whether or not to return a ggplot plot p which will display the normalization.
+#' @return Returns a list containing the normalized logFC matrix, the normalization factors themselves, and (if makePlot is TRUE), the normalization plot.
 normTagsByGC=function(logFCMat, tags = row.names(logFCMat), makePlot=T){
   message("Counting GC content")
   gcContent = str_count(tags, "[GC]");
@@ -188,10 +189,12 @@ normTagsByGC=function(logFCMat, tags = row.names(logFCMat), makePlot=T){
 }
 checkUsage(normTagsByGC)
 
-#' This is the function for 
-#' @param 
-#' @param 
-#' @return Returns 
+
+#' Not sure this function is used.
+#' This is the function for calculating the log of the tag data, with the option for including a pseudo count.
+#' @param tagData a data.frame of tags (rows) by samples (columns), where entries contain read counts for that tag. Not sure what first two columns are, but these are not counts (e.g. could be tag sequence and probe ID)
+#' @param pseudocount a count to add to each read count to avoid log(0). Defaults to 0.5
+#' @return Returns the same data frame as tagData, but counts are now log(count+pseudocount)
 logTagData=function(tagData, pseudocount=0.5){
   tagData[3:(ncol(tagData))] = log2(pseudocount+tagData[3:(ncol(tagData))]);
   return(tagData)
@@ -199,10 +202,13 @@ logTagData=function(tagData, pseudocount=0.5){
 checkUsage(logTagData)
 
 
-#' This is the function for 
-#' @param 
-#' @param 
-#' @return Returns 
+#' This is the function for calculating tag log(RNA/DNA) values for an MPRA experiment.
+#' @param tagCounts a data.frame of tag counts, one per sample, and one containing the input tags. Usually input is amplicon sequencing of the MPRA plasmid library. One column is named 'tag' one 'enhancer' (we should update this).
+#' @param inputColName the name of the column in tagCounts that contains the input (DNA) tag counts.
+#' @param center function with which to centre the data for each sample (default=median)
+#' @param minInput the minimum reads required within the input (DNA) before we include this tag (default = 30)
+#' @param minOutput the minimum reads required in the output (RNA) before we include this tag (default = 4)
+#' @return Returns the logFC as a matrix
 getTagFCs=function(tagCounts, inputColName,  center=median, minInput=30, minOutput=4){
   outCountMat = tagCounts[, colnames(tagCounts)!=inputColName];
   outCountMat$enhancer=NULL; outCountMat$tag=NULL
@@ -240,10 +246,10 @@ getTagFCs=function(tagCounts, inputColName,  center=median, minInput=30, minOutp
 checkUsage(getTagFCs)
 
 
-#' This is the function for 
-#' @param 
-#' @param 
-#' @return Returns 
+#' This is the function for determining which tags contain any of a set of given k-mers
+#' @param kmers a vector of k-mers
+#' @param tags vector of tag sequences
+#' @return Returns a logical for whether each tag contains any of the included k-mers
 tagContainsKmer = function(kmers, tags){
   containsKmer = rep(F, length(tags));
   for(kmer in kmers){
@@ -255,10 +261,11 @@ checkUsage(tagContainsKmer)
 
 
 
-#' This is the function for 
-#' @param 
-#' @param 
-#' @return Returns 
+#' This is the function for identifying likely outlier k-mers. These are k-mers which may affect the expression of the tag if present within it. These can include splicing motifs, etc.
+#' @param logFCMat Matrix of log(RNA/DNA) values.
+#' @param tags tag sequences (default=row.names(logFCMat))
+#' #param k The length of k-mers to consider (run time increases with 4^k). (default=5)
+#' @return Returns a data.frame containing mean(logFC), sd(logFC), and n (number of probes containing the k-mer) for each k-mer. 
 findOutlierKmers = function(logFCMat, tags = row.names(logFCMat), k=5){
   alphabet = c("A","T","G","C")
   kmers = ""
@@ -278,10 +285,9 @@ findOutlierKmers = function(logFCMat, tags = row.names(logFCMat), k=5){
 }
 checkUsage(findOutlierKmers)
 
-#' This is the function for 
-#' @param 
-#' @param 
-#' @return Returns 
+#' This is the function for removing tags that are NA for one reason or another.
+#' @param tagData data.frame (tags and probes in the first two columns) containing read counts for each sample (columns 3+)
+#' @return Returns the tagData, but after removing tags with 0 reads in all samples. 
 filterMissingTags=function(tagData){
   totalTags = nrow(tagData);
   #throw out any tags that were never observed in any data
