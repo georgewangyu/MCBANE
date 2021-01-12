@@ -1,6 +1,9 @@
 
+#the codetools package provides the checkUsage function which ensures that the given function is self contained
 library(codetools)
 
+
+#I don't think this was used. I believe it was similar to the analysis below, but used ANOVA instead of T-tests to look for differences in expression between alleles
 testAllSNPsANOVA = function(tagData, sample, allele="allele", snpid="snpid", tag="tag",probeid="probeid", primarySNP="primarySNP", logFC="logFC", minTags=5){
   message("Filtering innapropriate SNPs for ANOVA test");
   tagData = tagData[!is.na(tagData[[logFC]]),] # remove tags without a logFC (e.g. bad data)
@@ -67,7 +70,18 @@ testAllSNPsANOVA = function(tagData, sample, allele="allele", snpid="snpid", tag
 
 checkUsage(testAllSNPsANOVA)
 
-
+#' This is the main function that calculates ASE by either t-test or rank sum test
+#' @param tagData data.frame containing the tag-level data, including (at a minimum) log FC and the fields referred to in the parameters of this function
+#' @param sample the name of the column containing the sample IDs for each experiment
+#' @param allele the name of the column containing the allele that each tag is parcoding
+#' @param snpid the name of the column containing the SNP ID (e.g. rs58792)
+#' @param tag the name of the column containing the tag sequence
+#' @param probeid the name of the column containing the probe ID
+#' @param primarySNP the name of the column containing the SNP ID the SNP on which this probe is centred.
+#' @param logFC the name of the column containing the log(RNA/DNA) values for each tag
+#' @param test the type of test. "t.test" for Student's t-test; "ranksum" for the Wilcoxon rank sum test.
+#' @param minTags the min number of tags per SNP that are required before a test is performed
+#' @return Returns a data.frame containing the ASE results
 testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag",probeid="probeid", primarySNP="primarySNP", logFC="logFC", test="t.test", minTags=5){
   if (!(test %in% c("t.test","ranksum"))){
     stop("Unrecognized value for 'test'.  Must be one of c('t.test','ranksum')")
@@ -113,6 +127,11 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
 }
 checkUsage(testAllSNPs)
 
+
+#' This is the function for inputting the MPRA data. Here, each file contains headers but no row names. 
+#' @param IDs a vector of sample IDs, each corresponding to the entries in files
+#' @param files a vector of file paths, one for each ID in IDs
+#' @return Returns a list where each ID points to a vector of counts.
 readMPRAData = function(IDs, files){
   allData = data.frame();
   i=1;
@@ -129,7 +148,10 @@ readMPRAData = function(IDs, files){
 }
 checkUsage(readMPRAData)
 
-
+#' This is the function for 
+#' @param 
+#' @param 
+#' @return Returns 
 normTagsByGC=function(logFCMat, tags = row.names(logFCMat), makePlot=T){
   message("Counting GC content")
   gcContent = str_count(tags, "[GC]");
@@ -166,7 +188,10 @@ normTagsByGC=function(logFCMat, tags = row.names(logFCMat), makePlot=T){
 }
 checkUsage(normTagsByGC)
 
-
+#' This is the function for 
+#' @param 
+#' @param 
+#' @return Returns 
 logTagData=function(tagData, pseudocount=0.5){
   tagData[3:(ncol(tagData))] = log2(pseudocount+tagData[3:(ncol(tagData))]);
   return(tagData)
@@ -174,6 +199,10 @@ logTagData=function(tagData, pseudocount=0.5){
 checkUsage(logTagData)
 
 
+#' This is the function for 
+#' @param 
+#' @param 
+#' @return Returns 
 getTagFCs=function(tagCounts, inputColName,  center=median, minInput=30, minOutput=4){
   outCountMat = tagCounts[, colnames(tagCounts)!=inputColName];
   outCountMat$enhancer=NULL; outCountMat$tag=NULL
@@ -211,6 +240,10 @@ getTagFCs=function(tagCounts, inputColName,  center=median, minInput=30, minOutp
 checkUsage(getTagFCs)
 
 
+#' This is the function for 
+#' @param 
+#' @param 
+#' @return Returns 
 tagContainsKmer = function(kmers, tags){
   containsKmer = rep(F, length(tags));
   for(kmer in kmers){
@@ -222,6 +255,10 @@ checkUsage(tagContainsKmer)
 
 
 
+#' This is the function for 
+#' @param 
+#' @param 
+#' @return Returns 
 findOutlierKmers = function(logFCMat, tags = row.names(logFCMat), k=5){
   alphabet = c("A","T","G","C")
   kmers = ""
@@ -241,6 +278,10 @@ findOutlierKmers = function(logFCMat, tags = row.names(logFCMat), k=5){
 }
 checkUsage(findOutlierKmers)
 
+#' This is the function for 
+#' @param 
+#' @param 
+#' @return Returns 
 filterMissingTags=function(tagData){
   totalTags = nrow(tagData);
   #throw out any tags that were never observed in any data
