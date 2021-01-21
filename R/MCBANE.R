@@ -77,12 +77,11 @@ checkUsage(testAllSNPsANOVA)
 #' @param snpid the name of the column containing the SNP ID (e.g. rs58792)
 #' @param tag the name of the column containing the tag sequence
 #' @param probeid the name of the column containing the probe ID
-#' @param primarySNP the name of the column containing the SNP ID the SNP on which this probe is centred.
 #' @param logFC the name of the column containing the log(RNA/DNA) values for each tag
 #' @param test the type of test. "t.test" for Student's t-test; "ranksum" for the Wilcoxon rank sum test.
 #' @param minTags the min number of tags per SNP that are required before a test is performed
 #' @return Returns a data.frame containing the ASE results
-testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag",probeid="probeid", primarySNP="primarySNP", logFC="logFC", test="t.test", minTags=5){
+testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag",probeid="probeid", logFC="logFC", test="t.test", minTags=5){
   if (!(test %in% c("t.test","ranksum"))){
     stop("Unrecognized value for 'test'.  Must be one of c('t.test','ranksum')")
   }
