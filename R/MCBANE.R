@@ -86,8 +86,9 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
     stop("Unrecognized value for 'test'.  Must be one of c('t.test','ranksum')")
   }
   tagData = tagData[!is.na(tagData[[logFC]]),] # remove tags without a logFC (e.g. bad data)
-  tagData$distToPrimary = abs(tagData$posPrimary - tagData$position);
-  tagData = tagData[tagData$distToPrimary<=60,];
+  #TODO: we used to do this, but maybe this would be better to do somewhere else. We might not have this info and why did we include the SNPs if we didn't plan to study them?
+  #tagData$distToPrimary = abs(tagData$posPrimary - tagData$position);
+  #tagData = tagData[tagData$distToPrimary<=60,];
   allSNPs = unique(tagData[[snpid]]);
   allComparisons = data.frame();
   allSamples = unique(tagData[[sample]])
