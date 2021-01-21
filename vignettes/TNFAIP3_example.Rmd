@@ -131,13 +131,12 @@ message("Started with ",nrow(gcNormData$normLogFC), " tags and ended up with ", 
 
 ### Merge k-mer data with other data.frames to add required fields
 
-## NOTE THAT THIS IS NOT DONE YET
-
 ```{r }
 
 #merge normFiltTagLogFCs with other dataframes to get "enhancer", "SNP","allele" columns
 normFiltTagLogFCs = as.data.frame(normFiltTagLogFCs)
 normFiltTagLogFCs$tag = row.names(normFiltTagLogFCs); # add a column for tag
+
 #add "enhancer" column by merging with tagCounts (only the  enhancer and tag columns)
 nrow(normFiltTagLogFCs)
 normFiltTagLogFCs = merge(normFiltTagLogFCs, unique(tagCounts[c("enhancer","tag")]), by="tag")
@@ -145,9 +144,16 @@ nrow(normFiltTagLogFCs) #make sure this didn't change ### it didn't
 
 #add the  other needed columns
 #merge with tagProbeMap
-nrow(normFiltTagLogFCs)
 normFiltTagLogFCsWithSNPs = merge(normFiltTagLogFCs, unique(tagProbeMap), by="enhancer")
 nrow(normFiltTagLogFCsWithSNPs) #This time it changes because there are some probes that have multiple SNPs
+
+#In the data on GEO, the position of the SNP that is central in the probe is not listed, and it would be a bit of a pain to bring it back. I don't think it's really needed anyway since that's a filtering step that should take place outside of testAllSNPs, so we won't bother to determine this and will instead comment out the code from testAllSNPs that aimed to filter out probes for SNPs where the SNP was not near the middle.
+#  #merge with seqProbeid to get sequences
+#  seqProbeid$Sequence = gsub("GGCTGTCCCCAGTGCAAGTGCAGGTGCCAGAACATTTCTCTGGCCTAACTGGCCGCTTGACG(.*)CACTGCGGCTCCTGCGGTACCTCTAGANNNNNNNNNNNNNNNNAGATCGGAAGAGCGTCG","\\1",seqProbeid$seq)
+#  normFiltTagLogFCsWithSNPs = merge(normFiltTagLogFCsWithSNPs, seqProbeid[c("enhancer","Sequence")], by="enhancer")
+
+#  #merge with probeSeqsAndGenotypeInfo
+#  probeSeqsAndGenotypeInfo[c("p")]
 
 #names(normFiltTagLogFCsWithSNPs)
 
@@ -159,11 +165,6 @@ nrow(meltedNormFiltTagLogFC)
 meltedNormFiltTagLogFC = meltedNormFiltTagLogFC[!is.na(meltedNormFiltTagLogFC$logFC),];
 nrow(meltedNormFiltTagLogFC) #should be substantially smaller now
 
-#merge with seqProbeid to get sequences
-
-
-#merge with probeSeqsAndGenotypeInfo
-probeSeqsAndGenotypeInfo[c("p")]
 
 ```
 
