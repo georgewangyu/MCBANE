@@ -1,0 +1,174 @@
+---
+title: "MCBANE usage"
+author: "Carl de Boer"
+date: "21/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## MCBANE Tutorial on TNFAIP3 data
+
+###Load data and libraries
+
+```{r }
+source("https://raw.githubusercontent.com/Carldeboer/SingleCellR/master/ConvenienceFunctions.R")
+source("https://raw.githubusercontent.com/Carldeboer/MCBANE/main/R/MCBANE.R")
+
+
+library(stringr)
+library(reshape)
+library(ggplot2)
+library(seqinr)
+
+#normally readMPRAData would be the first function, but the data are already compiled from GEO
+
+probeSeqsAndGenotypeInfo = read.table(textConnection(readLines(gzcon(url("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE136702&format=file&file=GSE136702%5FProbeSequences%5Fand%5FSNP%5FGenotypes%5Fall%2Etxt%2Egz")))), 
+                       sep="\t", stringsAsFactors = FALSE, header = TRUE)
+probeTagMap = read.table(textConnection(readLines(gzcon(url("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE136702&format=file&file=GSE136702%5Fprobe%5Fbarcode%5Fassociation%5F3%2E4E6%5F2%2Emap%2Egz")))), 
+                       sep="\t", stringsAsFactors = FALSE, header = FALSE)
+tagCounts = read.table(textConnection(readLines(gzcon(url("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE136702&format=file&file=GSE136702%5F20190823%5FMPRA%5Ftag%5Fcount%5Fmatrix%2Etxt%2Egz")))), 
+                       sep="\t", stringsAsFactors = FALSE, header = TRUE)
+tagProbeMap = read.table(textConnection(readLines(gzcon(url("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE136702&format=file&file=GSE136702%5FMPRA90823%5FMPRA%5Fprobe%5FSNP%5Fallele%5Fmap%2Etxt%2Egz")))), 
+                       sep="\t", stringsAsFactors = FALSE, header = TRUE)
+
+seqProbeid = read.fasta(textConnection(readLines(gzcon(url('https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE136702&format=file&file=GSE136702%5FMPRA%5Fprobes%5Fand%5FbarcodeNs%5Fas%5Fin%5Fvector%5Ffor%5Fassociation%2Efasta%2Egz')))), as.string=T, forceDNAtolower=F)
+seqProbeid=data.frame(seq=unlist(seqProbeid), enhancer=names(seqProbeid))
+
+#change probeid column to "enhancer"
+names(tagCounts)[1]="enhancer"
+tagProbeMap$enhancer = tagProbeMap$probeid; tagProbeMap$probeid=NULL;
+
+
+```
+
+
+### Remove missing tags
+
+```{r }
+#Step 1
+
+tagCounts= filterMissingTags(tagCounts)
+#the data on GEO must already have been filtered
+
+```
+
+
+### Calculate tag log fold changes relative to DNA input
+
+```{r }
+
+#calculate logFCs
+logFCMatRaw = getTagFCs(tagCounts, inputColName = "inputCounts")
+```
+
+### Normalize the tag log FCs by GC content
+
+```{r }
+gcNormData = normTagsByGC(logFCMatRaw, makePlot=F)
+if("plot" %in% names(gcNormData)){
+  print(p);
+}
+```
+```{r }
+p = ggplot(gcNormData$normFactors, aes(x=gc, y=norm))+xlab("Number of G+Cs") + ylab("Normalization factor (logFC)")+geom_line(); print(p)
+```
+```{r }
+p = ggplot(gcNormData$normFactors, aes(x=gc, y=n))+xlab("Number of G+Cs") + ylab("Number of tags (n)")+geom_line(); print(p)
+
+```
+
+### Filter out tags containing k-mers that appear as outliers
+
+```{r }
+kmerStats = findOutlierKmers(gcNormData$normLogFC) #falc mean logFC for each k-mer
+#this step is slow and stringr or some other package might have a better way of doing the k-mer matching. Would be good because it would allow larger k too.
+```
+
+Plot mean logFCs distribution for each k-mer
+
+```{r}
+p = ggplot(kmerStats, aes(x=mean)) + geom_histogram(); print(p)
+```
+
+Plot n distribution for each k-mer
+
+```{r}
+p = ggplot(kmerStats, aes(x=n)) + geom_histogram(); print(p)
+
+```
+
+Find k-mers we never saw in the data for some reason
+
+```{r}
+nullomers = kmerStats$kmer[kmerStats$n==0]
+nullomers
+```
+
+
+```{r}
+kmerStats=kmerStats[!is.na(kmerStats$mean),] # remove unseen k-mers, where mean is NA
+```
+
+Identify tags containing outlier k-mers (|mean logFC| > 0.1)
+
+```{r}
+outlierKmers = kmerStats$kmer[abs(kmerStats$mean)>0.1]
+outlierKmers
+```
+
+Filter out outlier k-mers from data
+
+```{r}
+tossThese = tagContainsKmer(kmers = outlierKmers, row.names(gcNormData$normLogFC))
+
+normFiltTagLogFCs = gcNormData$normLogFC[!tossThese,];
+
+message("Started with ",nrow(gcNormData$normLogFC), " tags and ended up with ", nrow(normFiltTagLogFCs), " tags.")
+```
+
+### Merge k-mer data with other data.frames to add required fields
+
+## NOTE THAT THIS IS NOT DONE YET
+
+```{r }
+
+#merge normFiltTagLogFCs with other dataframes to get "enhancer", "SNP","allele" columns
+normFiltTagLogFCs = as.data.frame(normFiltTagLogFCs)
+normFiltTagLogFCs$tag = row.names(normFiltTagLogFCs); # add a column for tag
+#add "enhancer" column by merging with tagCounts (only the  enhancer and tag columns)
+nrow(normFiltTagLogFCs)
+normFiltTagLogFCs = merge(normFiltTagLogFCs, unique(tagCounts[c("enhancer","tag")]), by="tag")
+nrow(normFiltTagLogFCs) #make sure this didn't change ### it didn't
+
+#add the  other needed columns
+#merge with tagProbeMap
+nrow(normFiltTagLogFCs)
+normFiltTagLogFCsWithSNPs = merge(normFiltTagLogFCs, unique(tagProbeMap), by="enhancer")
+nrow(normFiltTagLogFCsWithSNPs) #This time it changes because there are some probes that have multiple SNPs
+
+#names(normFiltTagLogFCsWithSNPs)
+
+meltedNormFiltTagLogFC = melt(normFiltTagLogFCsWithSNPs,
+                              id.vars=c("enhancer", "tag", "allele", "position", "old_SNPID", "rsSNP"))
+names(meltedNormFiltTagLogFC)[(ncol(meltedNormFiltTagLogFC)-1):ncol(meltedNormFiltTagLogFC)] = c("sample","logFC")
+#remove NA logFCs
+nrow(meltedNormFiltTagLogFC)
+meltedNormFiltTagLogFC = meltedNormFiltTagLogFC[!is.na(meltedNormFiltTagLogFC$logFC),];
+nrow(meltedNormFiltTagLogFC) #should be substantially smaller now
+
+#merge with seqProbeid to get sequences
+
+
+#merge with probeSeqsAndGenotypeInfo
+probeSeqsAndGenotypeInfo[c("p")]
+
+```
+
+```{r}
+
+#the last function
+allSNPDEStats = testAllSNPs(meltedNormFiltTagLogFC, sample = "sample",allele="allele",snpid="rsSNP",tag="tag",probeid="enhancer", logFC="logFC",test="t.test", minTags=5)
+```
