@@ -98,7 +98,7 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
   tagData = pivot_wider(tagData, names_from = sample, values_from = logFC)
   for (snpi in 1:length(allSNPs)){
     snp = allSNPs[snpi];
-    message(sprintf("faster function snp %i/%i: ",snpi,length(allSNPs)), allSNPs[snpi]);
+    message(sprintf("faster function updated snp %i/%i: ",snpi,length(allSNPs)), allSNPs[snpi]);
     curData = tagData[tagData[[snpid]] == snp,];
     ## For this for loop, change it to i in: length(sample columns), use curData[[sampleID]] to get the column
     ## for(sampleID in allSamples)
