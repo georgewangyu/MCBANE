@@ -82,7 +82,6 @@ checkUsage(testAllSNPsANOVA)
 #' @param minTags the min number of tags per SNP that are required before a test is performed
 #' @return Returns a data.frame containing the ASE results
 testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag",probeid="probeid", logFC="logFC", test="t.test", minTags=5){
-  message("faster function")
   if (!(test %in% c("t.test","ranksum"))){
     stop("Unrecognized value for 'test'.  Must be one of c('t.test','ranksum')")
   }
@@ -106,7 +105,7 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
     for(sampleID in allSamples){
       message(sampleID)
       ##curData2 = curData[curData[[sample]]==sampleID,];
-      curData2 = curData[[sampleID]]
+      curData2 = curData[[sampleID]];
       #message(str(curData2))
       #do t.test or rank sum
       if (test %in% c("t.test", "ranksum")){
