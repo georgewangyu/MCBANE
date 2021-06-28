@@ -105,7 +105,7 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
     for(sampleID in allSamples){
       message(sampleID)
       ##curData2 = curData[curData[[sample]]==sampleID,];
-      curData2 = curData[[sampleID]];
+      curData2 = curData[curData[[sampleID]] = sampleID,];
       #message(str(curData2))
       #do t.test or rank sum
       if (test %in% c("t.test", "ranksum")){
