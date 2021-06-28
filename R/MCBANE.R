@@ -103,7 +103,8 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
     message(sprintf("snp %i/%i: ",snpi,length(allSNPs)), allSNPs[snpi]);
     curData = tagData[tagData[[snpid]] == snp,];
     ## For this for loop, change it to i in: length(sample columns), use curData[[sampleID]] to get the column
-    for(sampleID in allSamples){
+    ## for(sampleID in allSamples)
+    for(sampleID in i:length(curData[[sampleID]]){
       #message(sampleID)
       ##curData2 = curData[curData[[sample]]==sampleID,];
       curData[[sampleID]]
@@ -121,10 +122,11 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
                    ## instead of logFC we have sampleID after pivotwider, change every logFC to sampleID
                   curTT = t.test(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]], curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]], na.rm = TRUE);
                   ## instead of rbind, initialize allComparisons to the number of rows you think it is going to be
-                  allComparisons = rbind(allComparisons, data.frame(statType = "t.test", P = curTT$p.value, diff=curTT$estimate[1]-curTT$estimate[2], alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData2[[allele]]==curAlleles[a1i]), nB = sum(curData2[[allele]]==curAlleles[a2i]), meanA=mean(curData2[[logFC]][curData2[[allele]]==curAlleles[a1i]]), meanB=mean(curData2[[logFC]][curData2[[allele]]==curAlleles[a2i]]), sample = sampleID));
+                  allComparisons = rbind(allComparisons, data.frame(statType = "t.test", P = curTT$p.value, diff=curTT$estimate[1]-curTT$estimate[2], alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData2[[allele]]==curAlleles[a1i]), nB = sum(curData2[[allele]]==curAlleles[a2i]), meanA=mean(curData2[[
+                  ]][curData2[[allele]]==curAlleles[a1i]]), meanB=mean(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), sample = sampleID));
                 }else{
                   curRS = wilcox.test(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]], curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]);
-                  allComparisons = rbind(allComparisons, data.frame(statType = "ranksum", P = curRS$p.value, diff=median(curData2[[logFC]][curData2[[allele]]==curAlleles[a1i]]) - median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData2[[allele]]==curAlleles[a1i]), nB = sum(curData2[[allele]]==curAlleles[a2i]), medianA=median(curData2[[logFC]][curData2[[allele]]==curAlleles[a1i]]), medianB=median(curData2[[logFC]][curData2[[allele]]==curAlleles[a2i]]), sample = sampleID));
+                  allComparisons = rbind(allComparisons, data.frame(statType = "ranksum", P = curRS$p.value, diff=median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]]) - median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData2[[allele]]==curAlleles[a1i]), nB = sum(curData2[[allele]]==curAlleles[a2i]), medianA=median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]]), medianB=median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), sample = sampleID));
                 }
               }
             }
