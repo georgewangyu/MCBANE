@@ -108,22 +108,22 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
       #message(str(curData2))
       #do t.test or rank sum
       if (test %in% c("t.test", "ranksum")){
-        curAlleles = unique(curData2[[allele]])
+        curAlleles = unique(curData[[allele]])
         #message(paste(curAlleles, collapse=", "))
         if (length(curAlleles)>=2){
           for (a1i in 1:(length(curAlleles)-1)){ # compare all pairs of alleles
             for(a2i in (a1i+1):length(curAlleles)){
-              if (sum(curData2[[allele]]==curAlleles[a1i])>=minTags && sum(curData2[[allele]]==curAlleles[a2i]) >=minTags){ # min number of tags to bother comparing
+              if (sum(curData[[allele]]==curAlleles[a1i])>=minTags && sum(curData[[allele]]==curAlleles[a2i]) >=minTags){ # min number of tags to bother comparing
                 if (test=="t.test"){
-                  #message(sprintf("a1 = %i, a2= %i", sum(curData2[[allele]]==curAlleles[a1i]), sum(curData2[[allele]]==curAlleles[a2i])))
+                  #message(sprintf("a1 = %i, a2= %i", sum(curData[[allele]]==curAlleles[a1i]), sum(curData[[allele]]==curAlleles[a2i])))
                    ## instead of logFC we have sampleID after pivotwider, change every logFC to sampleID
-                  curTT = t.test(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]], curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]], na.rm = TRUE);
+                  curTT = t.test(curData[[sampleID]][curData[[allele]]==curAlleles[a1i]], curData[[sampleID]][curData[[allele]]==curAlleles[a2i]], na.action = na.omit);
                   ## instead of rbind, initialize allComparisons to the number of rows you think it is going to be
-                  allComparisons = rbind(allComparisons, data.frame(statType = "t.test", P = curTT$p.value, diff=curTT$estimate[1]-curTT$estimate[2], alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData2[[allele]]==curAlleles[a1i]), nB = sum(curData2[[allele]]==curAlleles[a2i]), meanA=mean(curData2[[
-                  ]][curData2[[allele]]==curAlleles[a1i]]), meanB=mean(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), sample = sampleID));
+                  allComparisons = rbind(allComparisons, data.frame(statType = "t.test", P = curTT$p.value, diff=curTT$estimate[1]-curTT$estimate[2], alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData[[allele]]==curAlleles[a1i]), nB = sum(curData[[allele]]==curAlleles[a2i]), meanA=mean(curData[[
+                  ]][curData[[allele]]==curAlleles[a1i]]), meanB=mean(curData[[sampleID]][curData[[allele]]==curAlleles[a2i]]), sample = sampleID));
                 }else{
-                  curRS = wilcox.test(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]], curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]);
-                  allComparisons = rbind(allComparisons, data.frame(statType = "ranksum", P = curRS$p.value, diff=median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]]) - median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData2[[allele]]==curAlleles[a1i]), nB = sum(curData2[[allele]]==curAlleles[a2i]), medianA=median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a1i]]), medianB=median(curData2[[sampleID]][curData2[[allele]]==curAlleles[a2i]]), sample = sampleID));
+                  curRS = wilcox.test(curData[[sampleID]][curData[[allele]]==curAlleles[a1i]], curData[[sampleID]][curData[[allele]]==curAlleles[a2i]]);
+                  allComparisons = rbind(allComparisons, data.frame(statType = "ranksum", P = curRS$p.value, diff=median(curData[[sampleID]][curData[[allele]]==curAlleles[a1i]]) - median(curData[[sampleID]][curData[[allele]]==curAlleles[a2i]]), alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData[[allele]]==curAlleles[a1i]), nB = sum(curData[[allele]]==curAlleles[a2i]), medianA=median(curData[[sampleID]][curData[[allele]]==curAlleles[a1i]]), medianB=median(curData[[sampleID]][curData[[allele]]==curAlleles[a2i]]), sample = sampleID));
                 }
               }
             }
