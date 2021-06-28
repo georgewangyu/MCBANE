@@ -96,6 +96,7 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
   ##TODO: 
   ## pivot wider the sample to columns for tagData 
   tagData = pivot_wider(tagData, names_from = sample, values_from = logFC)
+  message("faster function")
 
   for (snpi in 1:length(allSNPs)){
     snp = allSNPs[snpi];
