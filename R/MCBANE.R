@@ -119,7 +119,7 @@ testAllSNPs = function(tagData, sample, allele="allele", snpid="snpid", tag="tag
                    ## instead of logFC we have sampleID after pivotwider, change every logFC to sampleID
                   curTT = t.test(curData[[sampleID]][curData[[allele]]==curAlleles[a1i]], curData[[sampleID]][curData[[allele]]==curAlleles[a2i]], na.action = na.omit);
                   ## instead of rbind, initialize allComparisons to the number of rows you think it is going to be
-                  allComparisons = rbind(allComparisons, data.frame(statType = "t.test", P = curTT$p.value, diff=curTT$estimate[1]-curTT$estimate[2], alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData[[allele]]==curAlleles[a1i]), nB = sum(curData[[allele]]==curAlleles[a2i]), meanA=mean(curData[[
+                  allComparisons = rbind(allComparisons, data.frame(statType = "t.test", P = curTT$p.value, diff=curTT$estimate[1]-curTT$estimate[2], alleleA = curAlleles[a1i],alleleB = curAlleles[a2i], snp = snp, nA=sum(curData[[allele]]==curAlleles[a1i]), nB = sum(curData[[allele]]==curAlleles[a2i]), meanA=mean(curData[[sampleID
                   ]][curData[[allele]]==curAlleles[a1i]]), meanB=mean(curData[[sampleID]][curData[[allele]]==curAlleles[a2i]]), sample = sampleID));
                 }else{
                   curRS = wilcox.test(curData[[sampleID]][curData[[allele]]==curAlleles[a1i]], curData[[sampleID]][curData[[allele]]==curAlleles[a2i]]);
